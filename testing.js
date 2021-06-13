@@ -19,15 +19,15 @@ client.on('message', async(msg) => {
         
         console.log(grp);
 
-        const rets=await grp.fetchMessages();
+        const rets=await grp.fetchMessages({limit: 1});
 
         console.log(rets);
 
-        for (let i=0; i<rets.length; i++)
+        rets.forEach(message =>
         {
-            console.log(rets[i].body);
-            client.sendMessage('917003488782@c.us',rets[i].body);
-        }
+            console.log(message.body);
+            client.sendMessage('917003488782@c.us',message.body);
+        });
     }
 });
 
