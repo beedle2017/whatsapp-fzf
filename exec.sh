@@ -1,2 +1,5 @@
-node readallchats.js
-cat Allnames.txt | fzf --preview='cd ./AllChats && bat {}.txt'
+echo -e 'Past Messages\nSend Message\n<--Back' | fzf --preview='
+x={2} 
+if [[ "$x" == "Messages" ]]; then 
+cat curr.txt 
+fi '
