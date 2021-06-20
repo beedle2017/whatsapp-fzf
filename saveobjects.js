@@ -12,6 +12,7 @@ const fs = require('fs')
 const spawn = require('await-spawn');
 
 const shell = require('shelljs');
+const { worker } = require('cluster');
 
 const client = new Client();
 
@@ -27,6 +28,8 @@ async function middle(person)
 {
     person=person.substring(0,person.length-1);
 
+    curr_chat = person;
+
     const messages=chatmessages[person];
 
     const setupFile = fs.writeFileSync(`curr.txt`, person+'\n\n');
@@ -37,36 +40,44 @@ async function middle(person)
         const data = fs.writeFileSync(`curr.txt`, addition, { flag: 'a+' });
     }
 
-    const interaction = shell.exec(`bash exec.sh`, {silent:false}).stdout;
-        
-    if(interaction.localeCompare('<--Back\n')==0)
-    {
-        start();
-    }
-    else if(interaction.localeCompare(`Past Messages\n`)==0)
+    const fn = shell.exec(`bash exec.sh`, {silent:false});
+    
+    let interaction = fn.stdout;
+
+    if(fn.code!=0)
     {
         middle(person+'\n');
     }
-    else if(interaction.localeCompare(`Send Message\n`)==0)
+
+    if(fn.code==0)
     {
-        const make_message = await spawn('vim',['message.txt'],{stdio:'inherit'});
-        let new_message = fs.readFileSync('./message.txt', {encoding:'utf8'});
+        if(interaction.localeCompare('<--Back\n')==0)
+        {
+            start();
+        }
+        else if(interaction.localeCompare(`Past Messages\n`)==0)
+        {
+            middle(person+'\n');
+        }
+        else if(interaction.localeCompare(`Send Message\n`)==0)
+        {
+            const make_message = await spawn('vim',['message.txt'],{stdio:'inherit'});
+            let new_message = fs.readFileSync('./message.txt', {encoding:'utf8'});
 
-        let numberofperson = chats[person].id._serialized;
+            let numberofperson = chats[person].id._serialized;
 
-        const throwaway = chatmessages[person].shift();
+            const throwaway = chatmessages[person].shift();
 
-        chatmessages[person].push(new_message);
+            chatmessages[person].push(new_message);
 
-        const msg= await client.sendMessage(numberofperson,new_message);
+            const msg= await client.sendMessage(numberofperson,new_message);
 
-        console.log(chatmessages[person],person,numberofperson,new_message);
-
-        middle(person+'\n');
-    }
-    else
-    {
-        process.exit(0);
+            middle(person+'\n');
+        }
+        else
+        {
+            process.exit(0);
+        }
     }
 }
 
@@ -111,7 +122,22 @@ async function body()
     start();
 };
 
+let curr_chat='';
 let fzfstring='';
 let chats={};
 let chatmessages={};
+
 body();
+
+client.on('message', async(message) => {
+    const person = message.getChat().name;
+
+    const throwaway = chatmessages[person].shift();
+    chatmessages[person].push(message);
+
+  
+    if(curr_chat === person)
+    {
+        const event = shell.exec(`bash ./killprocess.sh`, {silent:true}).stdout;
+    }
+});
