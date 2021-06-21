@@ -1,19 +1,13 @@
 Neel
 
-ai (1).pdf
+Ok
 
-BEGIN:VCARD
-VERSION:3.0
-N:;SHUBHO;;;
-FN:SHUBHO
-item1.TEL;waid=916290492728:+91 6290 492 728
-item1.X-ABLabel:Mobile
-END:VCARD
+How are you?
 
-His
 
-Her
+Fine
 
-Testing.
+Now?
 
+Hmm
 

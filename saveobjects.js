@@ -1,5 +1,3 @@
-const { JSON } = require('./cycle');
-
 const qrcode = require('qrcode-terminal');
 
 const { Client } = require('whatsapp-web.js');
@@ -13,6 +11,10 @@ const spawn = require('await-spawn');
 
 const shell = require('shelljs');
 const { worker } = require('cluster');
+
+const { Worker, isMainThread } = require('worker_threads');
+const { MessageChannel, receiveMessageOnPort } = require('worker_threads');
+const { port1, port2 } = new MessageChannel();
 
 const client = new Client();
 
@@ -116,7 +118,7 @@ async function body()
         for(message of messages)
         {
             chatmessages[chatobj.name].push(message.body);
-        }
+        }        
     }
 
     start();
@@ -127,17 +129,36 @@ let fzfstring='';
 let chats={};
 let chatmessages={};
 
-body();
-
 client.on('message', async(message) => {
-    const person = message.getChat().name;
+    const personchat = await message.getContact();
+    const person = personchat.name;
 
     const throwaway = chatmessages[person].shift();
-    chatmessages[person].push(message);
+    chatmessages[person].push(message.body);
 
-  
+    console.log(peron,message);
+
     if(curr_chat === person)
     {
         const event = shell.exec(`bash ./killprocess.sh`, {silent:true}).stdout;
     }
 });
+
+//body();
+
+if(isMainThread)
+{
+    const worker = new Worker(__filename);
+    
+    for(let i=0;i<200000;i++);
+
+    port1.postMessage("Jack");
+
+    console.log('Main thread finished');
+
+}
+else
+{
+    console.log('I am active');
+    console.log(receiveMessageOnPort(port2));
+}
