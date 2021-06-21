@@ -144,21 +144,21 @@ client.on('message', async(message) => {
     }
 });
 
-//body();
+body();
 
-if(isMainThread)
-{
-    const worker = new Worker(__filename);
+// if(isMainThread)
+// {
+//     const worker = new Worker(__filename);
     
-    for(let i=0;i<200000;i++);
+//     for(let i=0;i<200000;i++);
 
-    port1.postMessage("Jack");
+//     port1.postMessage("Jack");
 
-    console.log('Main thread finished');
+//     console.log('Main thread finished');
 
-}
-else
-{
-    console.log('I am active');
-    console.log(receiveMessageOnPort(port2));
-}
+// }
+// else
+// {
+//     console.log('I am active');
+//     console.log(receiveMessageOnPort(port2));
+// }
