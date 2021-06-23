@@ -11,15 +11,6 @@ const spawn = require('await-spawn');
 
 const shell = require('shelljs');
 
-const {
-    Worker,
-    isMainThread,
-    threadId,
-    SHARE_ENV,
-    setEnvironmentData,
-    getEnvironmentData
-} = require('worker_threads');
-
 const client = new Client();
 
 client.on('message', async(message) => {
@@ -29,7 +20,7 @@ client.on('message', async(message) => {
     const throwaway = chatmessages[person].shift();
     chatmessages[person].push(message.body);
 
-    // console.log(peron,message.body);
+    console.log(person, message.timestamp);
 
     if(curr_chat === person)
     {
@@ -45,8 +36,6 @@ async function middle(person)
 
     const messages=chatmessages[person];
 
-    const setupFile = fs.writeFileSync(`curr.txt`, person+'\n\n');
-
     let flag=0;
 
     for (message of messages)
@@ -55,12 +44,12 @@ async function middle(person)
 
         if(flag==0)
         {
-            const data = fs.writeFileSync(`curr.txt`, addition);
+            const data = fs.writeFileSync(`curr.md`, addition);
             flag=1;
         }
         else
         {
-            const data = fs.writeFileSync(`curr.txt`, addition, {flag : 'a+'});
+            const data = fs.writeFileSync(`curr.md`, addition, {flag : 'a+'});
         }
     }
 
@@ -112,7 +101,7 @@ async function middle(person)
 
 async function start()
 {
-    const event = shell.exec(`echo "${fzfstring}" | fzf`, {silent:false}).stdout;
+    const event = shell.exec(`echo "${fzfstring}" | fzf --layout="reverse-list" --border`, {silent:false}).stdout;
 
     if(event.localeCompare('')==0)
     {
@@ -168,7 +157,7 @@ client.on('ready', () => {
 async function main()
 {    
     await body();
-    start();
+    //start();
 }
 
 main();

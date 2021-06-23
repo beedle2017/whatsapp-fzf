@@ -6,8 +6,8 @@
 
 # trap no_ctrlc USR1
 
-echo -e 'Past Messages\nSend Message\n<--Back' | fzf --preview='
+echo -e 'Past Messages\nSend Message\n<--Back' | fzf --layout="reverse-list" --border --phony --preview-window wrap --preview='
 x={2} 
 if [[ "$x" == "Messages" ]]; then 
-cat curr.txt 
+mdcat curr.md 
 fi '
