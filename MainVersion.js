@@ -55,7 +55,7 @@ async function middle(person)
 
     shell.exec(`bash exec.sh`, {silent:false, async:true}, async function(code, stdout, stderr) {
         
-        let interaction = stdout;
+        let interaction = stdout.split('\n');
 
         if(code!=0)
         {
@@ -64,15 +64,16 @@ async function middle(person)
     
         if(code==0)
         {
-            if(interaction.localeCompare('<--Back\n')==0)
+            if(interaction[1].localeCompare('<--Back')==0)
             {
                 start();
             }
-            else if(interaction.localeCompare(`Past Messages\n`)==0)
+            else if(interaction[1].localeCompare(`Past Messages`)==0)
             {
+                const show_message = await spawn('vim',['curr.md'],{stdio:'inherit'});
                 middle(person+'\n');
             }
-            else if(interaction.localeCompare(`Send Message\n`)==0)
+            else if(interaction[1].localeCompare(`Send Message`)==0)
             {
                 const make_message = await spawn('vim',['message.txt'],{stdio:'inherit'});
                 let new_message = fs.readFileSync('./message.txt', {encoding:'utf8'});
@@ -89,6 +90,22 @@ async function middle(person)
     
                 middle(person+'\n');
             }
+            else if(interaction[1].localeCompare('Quick Send')==0)
+            {
+                new_message = interaction[0];
+
+                let numberofperson = chats[person].id._serialized;
+    
+                const throwaway = chatmessages[person].shift();
+                
+                let timestamp = new Date().toLocaleTimeString('en-US');
+    
+                chatmessages[person].push({'body':new_message, 'from':'You', 'time':timestamp});
+    
+                const msg= await client.sendMessage(numberofperson,new_message);
+
+                middle(person+'\n');
+            }
             else
             {
                 process.exit(0);
@@ -103,7 +120,7 @@ async function middle(person)
 
 async function start()
 {
-    const event = shell.exec(`echo "${fzfstring}" | fzf --layout="reverse-list" --border`, {silent:false}).stdout;
+    const event = shell.exec(`echo "${fzfstring}" | fzf --layout="reverse-list" --border --info="hidden" `, {silent:false}).stdout;
 
     if(event.localeCompare('')==0)
     {
