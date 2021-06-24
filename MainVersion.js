@@ -10,6 +10,7 @@ const fs = require('fs')
 const spawn = require('await-spawn');
 
 const shell = require('shelljs');
+const { time } = require('console');
 
 const client = new Client();
 
@@ -18,9 +19,8 @@ client.on('message', async(message) => {
     const person = personchat.name;
 
     const throwaway = chatmessages[person].shift();
-    chatmessages[person].push(message.body);
-
-    console.log(person, message.timestamp);
+    let timestamp = new Date(message.timestamp).toLocaleTimeString('en-US');
+    chatmessages[person].push({'body':message.body, 'from':person, 'time':timestamp});
 
     if(curr_chat === person)
     {
@@ -40,7 +40,7 @@ async function middle(person)
 
     for (message of messages)
     {
-        let addition = message+'\n\n';
+        let addition = `###### ${message.from} (${message.time})\n${message.body}\n\n---\n\n`;
 
         if(flag==0)
         {
@@ -80,8 +80,10 @@ async function middle(person)
                 let numberofperson = chats[person].id._serialized;
     
                 const throwaway = chatmessages[person].shift();
+                
+                let timestamp = new Date().toLocaleTimeString('en-US');
     
-                chatmessages[person].push(new_message);
+                chatmessages[person].push({'body':new_message, 'from':'You', 'time':timestamp});
     
                 const msg= await client.sendMessage(numberofperson,new_message);
     
@@ -133,7 +135,10 @@ async function body()
 
         for(message of messages)
         {
-            chatmessages[chatobj.name].push(message.body);
+            let timestamp = new Date(message.timestamp).toLocaleTimeString('en-US');
+            let from = await message.getContact();
+            from = from.name;
+            chatmessages[chatobj.name].push({'body':message.body, 'from':(message.fromMe?'You':from), 'time':timestamp});
         }        
     }
 
@@ -157,7 +162,7 @@ client.on('ready', () => {
 async function main()
 {    
     await body();
-    //start();
+    start();
 }
 
 main();
