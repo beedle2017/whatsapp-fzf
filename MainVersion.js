@@ -19,18 +19,31 @@ client.on('message', async(message) => {
     const person = personchat.name;
 
     const throwaway = chatmessages[person].shift();
-    let timestamp = new Date(message.timestamp).toLocaleTimeString('en-US');
+    let timestamp = new Date().toLocaleTimeString('en-US');
     chatmessages[person].push({'body':message.body, 'from':person, 'time':timestamp});
 
     if(curr_chat === person)
     {
         const event = shell.exec(`bash ./killprocess.sh`, {silent:true}).stdout;
     }
+    else if(atstartscreen && newmessages[person]==false)
+    {
+        newmessages[person]=true;
+        const event = shell.exec(`bash ./killstart.sh`, {silent:true}).stdout;
+    }
 });
 
 async function middle(person)
 {
+    atstartscreen=false;
+
     person=person.substring(0,person.length-1);
+
+    if(person[person.length-1]==')' && person[person.length-2]=='*' && person[person.length-3]=='(')
+        person=person.substring(0,person.length-4);
+
+    if(newmessages[person])
+        newmessages[person]=false;
 
     curr_chat = person;
 
@@ -120,16 +133,41 @@ async function middle(person)
 
 async function start()
 {
-    const event = shell.exec(`echo "${fzfstring}" | fzf --layout="reverse-list" --border --info="hidden" `, {silent:false}).stdout;
+    fzfstring = '';
+    atstartscreen = true;
+    curr_chat = '';
+    
+    let prop;
 
-    if(event.localeCompare('')==0)
-    {
-        process.exit(0);
+    for (prop in newmessages) {
+        if (newmessages.hasOwnProperty(prop)) {
+            fzfstring = fzfstring + prop;
+            if(newmessages[prop])
+                fzfstring += ` (*)`;
+            fzfstring += `\\n`;
+        }
     }
-    else
-    {
-        middle(event);
-    }
+
+    fzfstring += `Quit\\n`;
+
+    shell.exec(`bash startbashprogram.sh "${fzfstring}"`, {silent:false, async:true}, async function(code, stdout, stderr){
+
+        if (code==0)
+        {
+            if(stdout.localeCompare('Quit\n')==0)
+            {
+                process.exit(0);
+            }
+            else
+            {
+                middle(stdout);
+            }
+        }
+        else
+        {
+            start();
+        }
+    });
 }
 
 async function body()
@@ -141,12 +179,13 @@ async function body()
     {
         let chatobj = arr[i];
 
-        fzfstring=fzfstring+chatobj.name+'\\n';
+        // fzfstring=fzfstring+chatobj.name+'\\n';
         chats[chatobj.name]=chatobj;
 
         let messages=await chatobj.fetchMessages({limit: 5});
 
         chatmessages[chatobj.name]=[];
+        newmessages[chatobj.name]=false;
 
         console.log(`Processing ${chatobj.name}`);
 
@@ -166,6 +205,8 @@ let curr_chat='';
 let fzfstring='';
 let chats={};
 let chatmessages={};
+let newmessages={};
+let atstartscreen=false;
 
 client.on('qr', qr => {
     qrcode.generate(qr, {small: true});

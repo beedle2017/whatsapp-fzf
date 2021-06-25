@@ -1,0 +1,1 @@
+echo -e "$1" | fzf --layout="reverse-list" --border --info="hidden"

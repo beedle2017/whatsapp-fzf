@@ -1,27 +1,25 @@
-###### Neel (12:45:21 AM)
-Do
+###### Neel (12:46:51 AM)
+Yes
 
 ---
 
-###### You (12:45:21 AM)
-ifgdgdgf
-
-
+###### Neel (12:46:51 AM)
+Yes
 
 ---
 
-###### You (12:45:25 AM)
-Hey, sending a message
+###### You (2:36:04 PM)
+Please say something
 
 ---
 
-###### You (12:45:25 AM)
-Sending
+###### Neel (12:46:51 AM)
+Yes
 
 ---
 
-###### You (2:47:28 PM)
-Again
+###### You (2:36:57 PM)
+Received
 
 ---
 
