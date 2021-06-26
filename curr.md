@@ -1,25 +1,25 @@
-###### Neel (12:46:51 AM)
-Yes
+###### undefined (12:48:34 AM)
+YouTube Live: https://bit.ly/3gWppbm
 
 ---
 
-###### Neel (12:46:51 AM)
-Yes
+###### Debarghya (Ju Cse) (12:48:43 AM)
+Contact
 
 ---
 
-###### You (2:36:04 PM)
-Please say something
+###### Debarghya (Ju Cse) (12:48:43 AM)
+Anybody willing to work in React based project as a paid intern in Fly Goldfinch company
 
 ---
 
-###### Neel (12:46:51 AM)
-Yes
+###### Debarghya (Ju Cse) (12:48:43 AM)
+BEGIN:VCARD
 
 ---
 
-###### You (2:36:57 PM)
-Received
+###### undefined (12:48:52 AM)
+https://youtu.be/-gq5YyOV1-0
 
 ---
 

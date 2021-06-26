@@ -5,6 +5,8 @@ const {Chat} = require('whatsapp-web.js');
 
 const fs = require('fs')
 
+const request = require('request')
+
 // const { exec, spawnSync } = require("child_process");
 
 const spawn = require('await-spawn');
@@ -14,15 +16,43 @@ const { time } = require('console');
 
 const client = new Client();
 
+const download = (url, path, callback) => {
+    request.head(url, (err, res, body) => {
+      request(url)
+        .pipe(fs.createWriteStream(path))
+        .on('close', callback)
+    })
+}
+  
+
 client.on('message', async(message) => {
     const personchat = await message.getContact();
     const person = personchat.name;
 
-    const throwaway = chatmessages[person].shift();
+    if(chatmessages[person]!=null)
+    {
+        if(chatmessages[person].length>5)
+        chatmessages[person].shift();
+    }
+
+    if(chatmessages[person]==null)
+    chatmessages[person]=[];
+
     let timestamp = new Date().toLocaleTimeString('en-US');
     chatmessages[person].push({'body':message.body, 'from':person, 'time':timestamp});
 
-    if(curr_chat === person)
+    if(newmessages[person]==null)
+    {
+        newmessages[person]=true;
+        const chatobj = await message.getChat();
+        chats[person] = chatobj;
+        
+        if(atstartscreen)
+        {
+            const event = shell.exec(`bash ./killstart.sh`, {silent:true}).stdout;
+        }
+    }
+    else if(curr_chat === person)
     {
         const event = shell.exec(`bash ./killprocess.sh`, {silent:true}).stdout;
     }
@@ -66,6 +96,8 @@ async function middle(person)
         }
     }
 
+    fs.writeFileSync('status.md' , `---\n## About : ${abouts[person]}\n\n---`);
+
     shell.exec(`bash exec.sh`, {silent:false, async:true}, async function(code, stdout, stderr) {
         
         let interaction = stdout.split('\n');
@@ -92,14 +124,16 @@ async function middle(person)
                 let new_message = fs.readFileSync('./message.txt', {encoding:'utf8'});
     
                 let numberofperson = chats[person].id._serialized;
-    
-                const throwaway = chatmessages[person].shift();
+                
+                if(chatmessages[person].length>5)
+                chatmessages[person].shift();
                 
                 let timestamp = new Date().toLocaleTimeString('en-US');
     
                 chatmessages[person].push({'body':new_message, 'from':'You', 'time':timestamp});
-    
-                const msg= await client.sendMessage(numberofperson,new_message);
+                
+                if(new_message.localeCompare(``)!=0)
+                await client.sendMessage(numberofperson,new_message);
     
                 middle(person+'\n');
             }
@@ -108,20 +142,27 @@ async function middle(person)
                 new_message = interaction[0];
 
                 let numberofperson = chats[person].id._serialized;
-    
-                const throwaway = chatmessages[person].shift();
+                
+                if(chatmessages[person].length>5)
+                chatmessages[person].shift();
                 
                 let timestamp = new Date().toLocaleTimeString('en-US');
     
                 chatmessages[person].push({'body':new_message, 'from':'You', 'time':timestamp});
-    
-                const msg= await client.sendMessage(numberofperson,new_message);
+                
+                if(new_message.localeCompare(``)!=0)
+                await client.sendMessage(numberofperson,new_message);
 
+                middle(person+'\n');
+            }
+            else if(interaction[1].localeCompare('Profile Picture')==0)
+            {
+                shell.exec(`xdg-open "./images/${person}"`, {silent:false, async:true});
                 middle(person+'\n');
             }
             else
             {
-                process.exit(0);
+                middle(person+'\n');
             }
         }
 
@@ -195,9 +236,15 @@ async function body()
             let from = await message.getContact();
             from = from.name;
             chatmessages[chatobj.name].push({'body':message.body, 'from':(message.fromMe?'You':from), 'time':timestamp});
-        }        
-    }
+        }
+        
+        let contact = await chatobj.getContact();
+        let url = await contact.getProfilePicUrl();
+        let about = await contact.getAbout();
+        abouts[chatobj.name] = about;
 
+        download(url,`./images/${chatobj.name}`, () => {;});
+    }
     return;
 };
 
@@ -206,6 +253,7 @@ let fzfstring='';
 let chats={};
 let chatmessages={};
 let newmessages={};
+let abouts={};
 let atstartscreen=false;
 
 client.on('qr', qr => {
