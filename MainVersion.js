@@ -46,6 +46,10 @@ client.on('message', async(message) => {
         newmessages[person]=true;
         const chatobj = await message.getChat();
         chats[person] = chatobj;
+        let about = await personchat.getAbout();
+        abouts[person] = about;
+        let url = await personchat.getProfilePicUrl();
+        download(url,`./images/${chatobj.name}`, () => {;});
         
         if(atstartscreen)
         {
@@ -125,16 +129,18 @@ async function middle(person)
     
                 let numberofperson = chats[person].id._serialized;
                 
-                if(chatmessages[person].length>5)
-                chatmessages[person].shift();
-                
-                let timestamp = new Date().toLocaleTimeString('en-US');
-    
-                chatmessages[person].push({'body':new_message, 'from':'You', 'time':timestamp});
-                
                 if(new_message.localeCompare(``)!=0)
-                await client.sendMessage(numberofperson,new_message);
-    
+                {
+                    if(chatmessages[person].length>5)
+                    chatmessages[person].shift();
+                    
+                    let timestamp = new Date().toLocaleTimeString('en-US');
+        
+                    chatmessages[person].push({'body':new_message, 'from':'You', 'time':timestamp});
+                    
+                    await client.sendMessage(numberofperson,new_message);
+                }
+
                 middle(person+'\n');
             }
             else if(interaction[1].localeCompare('Quick Send')==0)
@@ -143,16 +149,18 @@ async function middle(person)
 
                 let numberofperson = chats[person].id._serialized;
                 
-                if(chatmessages[person].length>5)
-                chatmessages[person].shift();
-                
-                let timestamp = new Date().toLocaleTimeString('en-US');
-    
-                chatmessages[person].push({'body':new_message, 'from':'You', 'time':timestamp});
-                
                 if(new_message.localeCompare(``)!=0)
-                await client.sendMessage(numberofperson,new_message);
+                {
+                    if(chatmessages[person].length>5)
+                    chatmessages[person].shift();
+                
+                    let timestamp = new Date().toLocaleTimeString('en-US');
 
+                    chatmessages[person].push({'body':new_message, 'from':'You', 'time':timestamp});
+                    
+                    await client.sendMessage(numberofperson,new_message);
+                }
+                
                 middle(person+'\n');
             }
             else if(interaction[1].localeCompare('Profile Picture')==0)
@@ -172,6 +180,63 @@ async function middle(person)
 
 }
 
+async function other()
+{
+    let s = '';
+
+    for(person of allcontacts)
+    {
+        if(newmessages[person]==null)
+        {
+            s += `${person}\\n`;
+        }
+    }
+
+    let output = shell.exec(`echo "${s}" | fzf --layout="reverse-list" --border --info="hidden" --preview='echo "# Hit Enter to send message to the person" | mdcat '`, {silent:false, async:false}).stdout;
+
+    if(!output)
+    {
+        start();
+    }
+    else
+    {
+        let person = output.substring(0,output.length-1);
+
+        const make_message = await spawn('vim',['message.txt'],{stdio:'inherit'});
+        let new_message = fs.readFileSync('./message.txt', {encoding:'utf8'});
+
+        if(new_message.localeCompare(``)!=0)
+        {
+            for (chatobj of arr)
+            {
+                if (chatobj.name == person)
+                {
+                    chats[person] = chatobj;
+                    let contact = await chatobj.getContact();
+                    let about = await contact.getAbout();
+                    abouts[person] = about;
+                    let url = await contact.getProfilePicUrl();
+                    download(url,`./images/${chatobj.name}`, () => {;});
+                }
+            }
+            
+            let timestamp = new Date().toLocaleTimeString('en-US');
+
+            chatmessages[person] = [];
+            chatmessages[person].push({'body':new_message, 'from':'You', 'time':timestamp});
+
+            newmessages[person] = false;
+
+            let numberofperson = chats[person].id._serialized;
+            
+            await client.sendMessage(numberofperson,new_message);
+        }
+
+        start();
+
+    }
+}
+
 async function start()
 {
     fzfstring = '';
@@ -189,7 +254,7 @@ async function start()
         }
     }
 
-    fzfstring += `Quit\\n`;
+    fzfstring += `Other Contacts\\nQuit\\n`;
 
     shell.exec(`bash startbashprogram.sh "${fzfstring}"`, {silent:false, async:true}, async function(code, stdout, stderr){
 
@@ -198,6 +263,10 @@ async function start()
             if(stdout.localeCompare('Quit\n')==0)
             {
                 process.exit(0);
+            }
+            else if(stdout.localeCompare('Other Contacts\n')==0)
+            {
+                other();
             }
             else
             {
@@ -214,7 +283,12 @@ async function start()
 async function body()
 {   
     await client.initialize();   
-    let arr = await client.getChats();
+    arr = await client.getChats();
+
+    for (chatobj of arr)
+    {
+        allcontacts.push(chatobj.name);
+    }
 
     for (let i=0; i<5; i++)
     {
@@ -255,6 +329,8 @@ let chatmessages={};
 let newmessages={};
 let abouts={};
 let atstartscreen=false;
+let allcontacts=[];
+let arr = {}
 
 client.on('qr', qr => {
     qrcode.generate(qr, {small: true});
