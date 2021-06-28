@@ -38,6 +38,16 @@ client.on('message', async(message) => {
     if(chatmessages[person]==null)
     chatmessages[person]=[];
 
+    if(message.hasMedia)
+    {
+        let media = await message.downloadMedia();
+        let buffer = Buffer.from(media.data,'base64');
+        message.body+='\n[Message contains media. Media saved at $HOME/Downloads/\n]'
+        shell.exec(`touch "./${person}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+        fs.writeFileSync(`./${person}_whatsapp_${message.timestamp}`,buffer);
+        shell.exec(`mv "./${person}_whatsapp_${message.timestamp}"  "$HOME/Downloads/${person}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+    }
+
     let timestamp = new Date().toLocaleTimeString('en-US');
     chatmessages[person].push({'body':message.body, 'from':person, 'time':timestamp});
 
@@ -165,6 +175,7 @@ async function middle(person)
             }
             else if(interaction[1].localeCompare('Profile Picture')==0)
             {
+                if (fs.existsSync(`./images/${person}`))
                 shell.exec(`xdg-open "./images/${person}"`, {silent:false, async:true});
                 middle(person+'\n');
             }
@@ -306,9 +317,20 @@ async function body()
 
         for(message of messages)
         {
-            let timestamp = new Date(message.timestamp).toLocaleTimeString('en-US');
+            let timestamp = new Date(message.timestamp*1000).toLocaleTimeString('en-US');
             let from = await message.getContact();
             from = from.name;
+
+            if(message.hasMedia)
+            {
+                let media = await message.downloadMedia();
+                let buffer = Buffer.from(media.data,'base64');
+                message.body+='\n[Message contains media. Media saved at $HOME/Downloads/\n]'
+                shell.exec(`touch "./${from}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+                fs.writeFileSync(`./${from}_whatsapp_${message.timestamp}`,buffer);
+                shell.exec(`mv "./${from}_whatsapp_${message.timestamp}"  "$HOME/Downloads/${from}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+            }
+
             chatmessages[chatobj.name].push({'body':message.body, 'from':(message.fromMe?'You':from), 'time':timestamp});
         }
         
@@ -317,7 +339,14 @@ async function body()
         let about = await contact.getAbout();
         abouts[chatobj.name] = about;
 
-        download(url,`./images/${chatobj.name}`, () => {;});
+        try
+        {
+            download(url,`./images/${chatobj.name}`, () => {;});
+        }
+        catch(e)
+        {
+            ;
+        }
     }
     return;
 };
