@@ -1,3 +1,5 @@
+const {clearscreen, numberofchats, numberofmessages, messagelimit, editor, photoviewer, todownloadmedia, savedir} = require('./config.js'); 
+
 const qrcode = require('qrcode-terminal');
 
 const { Client } = require('whatsapp-web.js');
@@ -31,7 +33,7 @@ client.on('message', async(message) => {
 
     if(chatmessages[person]!=null)
     {
-        if(chatmessages[person].length>5)
+        if(chatmessages[person].length>=messagelimit)
         chatmessages[person].shift();
     }
 
@@ -40,12 +42,19 @@ client.on('message', async(message) => {
 
     if(message.hasMedia)
     {
-        let media = await message.downloadMedia();
-        let buffer = Buffer.from(media.data,'base64');
-        message.body+='\n[Message contains media. Media saved at $HOME/Downloads/\n]'
-        shell.exec(`touch "./${person}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
-        fs.writeFileSync(`./${person}_whatsapp_${message.timestamp}`,buffer);
-        shell.exec(`mv "./${person}_whatsapp_${message.timestamp}"  "$HOME/Downloads/${person}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+        if(todownloadmedia)
+        {
+            let media = await message.downloadMedia();
+            let buffer = Buffer.from(media.data,'base64');
+            message.body+=`\n[Message contains media. Media saved at ${savedir}\n]`;
+            shell.exec(`touch "./${person}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+            fs.writeFileSync(`./${person}_whatsapp_${message.timestamp}`,buffer);
+            shell.exec(`mv "./${person}_whatsapp_${message.timestamp}"  "${savedir}${person}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+        }
+        else
+        {
+            message.body+=`\n[Message contains media.\n]`;
+        }
     }
 
     let timestamp = new Date().toLocaleTimeString('en-US');
@@ -129,19 +138,19 @@ async function middle(person)
             }
             else if(interaction[1].localeCompare(`Past Messages`)==0)
             {
-                const show_message = await spawn('vim',['curr.md'],{stdio:'inherit'});
+                const show_message = await spawn(`${editor}`,['curr.md'],{stdio:'inherit'});
                 middle(person+'\n');
             }
             else if(interaction[1].localeCompare(`Send Message`)==0)
             {
-                const make_message = await spawn('vim',['message.txt'],{stdio:'inherit'});
+                const make_message = await spawn(`${editor}`,['message.txt'],{stdio:'inherit'});
                 let new_message = fs.readFileSync('./message.txt', {encoding:'utf8'});
     
                 let numberofperson = chats[person].id._serialized;
                 
                 if(new_message.localeCompare(``)!=0)
                 {
-                    if(chatmessages[person].length>5)
+                    if(chatmessages[person].length>=messagelimit)
                     chatmessages[person].shift();
                     
                     let timestamp = new Date().toLocaleTimeString('en-US');
@@ -161,7 +170,7 @@ async function middle(person)
                 
                 if(new_message.localeCompare(``)!=0)
                 {
-                    if(chatmessages[person].length>5)
+                    if(chatmessages[person].length>=messagelimit)
                     chatmessages[person].shift();
                 
                     let timestamp = new Date().toLocaleTimeString('en-US');
@@ -176,7 +185,7 @@ async function middle(person)
             else if(interaction[1].localeCompare('Profile Picture')==0)
             {
                 if (fs.existsSync(`./images/${person}`))
-                shell.exec(`xdg-open "./images/${person}"`, {silent:false, async:true});
+                shell.exec(`${photoviewer} "./images/${person}"`, {silent:false, async:true});
                 middle(person+'\n');
             }
             else
@@ -203,9 +212,15 @@ async function other()
         }
     }
 
+    s+='<--Back';
+
     let output = shell.exec(`echo "${s}" | fzf --layout="reverse-list" --border --info="hidden" --preview='echo "# Hit Enter to send message to the person" | mdcat '`, {silent:false, async:false}).stdout;
 
     if(!output)
+    {
+        start();
+    }
+    else if (output.localeCompare('<--Back\n')==0)
     {
         start();
     }
@@ -213,7 +228,7 @@ async function other()
     {
         let person = output.substring(0,output.length-1);
 
-        const make_message = await spawn('vim',['message.txt'],{stdio:'inherit'});
+        const make_message = await spawn(`${editor}`,['message.txt'],{stdio:'inherit'});
         let new_message = fs.readFileSync('./message.txt', {encoding:'utf8'});
 
         if(new_message.localeCompare(``)!=0)
@@ -265,13 +280,13 @@ async function start()
         }
     }
 
-    fzfstring += `Other Contacts\\nQuit\\n`;
+    fzfstring += `Other Contacts\\nQuit`;
 
     shell.exec(`bash startbashprogram.sh "${fzfstring}"`, {silent:false, async:true}, async function(code, stdout, stderr){
 
         if (code==0)
         {
-            if(stdout.localeCompare('Quit\n')==0)
+            if(stdout.localeCompare('Quit')==0)
             {
                 process.exit(0);
             }
@@ -301,14 +316,14 @@ async function body()
         allcontacts.push(chatobj.name);
     }
 
-    for (let i=0; i<5; i++)
+    for (let i=0; i<numberofchats; i++)
     {
         let chatobj = arr[i];
 
         // fzfstring=fzfstring+chatobj.name+'\\n';
         chats[chatobj.name]=chatobj;
 
-        let messages=await chatobj.fetchMessages({limit: 5});
+        let messages=await chatobj.fetchMessages({limit: numberofmessages});
 
         chatmessages[chatobj.name]=[];
         newmessages[chatobj.name]=false;
@@ -323,14 +338,21 @@ async function body()
 
             if(message.hasMedia)
             {
-                let media = await message.downloadMedia();
-                let buffer = Buffer.from(media.data,'base64');
-                message.body+='\n[Message contains media. Media saved at $HOME/Downloads/\n]'
-                shell.exec(`touch "./${from}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
-                fs.writeFileSync(`./${from}_whatsapp_${message.timestamp}`,buffer);
-                shell.exec(`mv "./${from}_whatsapp_${message.timestamp}"  "$HOME/Downloads/${from}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+                if(todownloadmedia)
+                {
+                    let media = await message.downloadMedia();
+                    let buffer = Buffer.from(media.data,'base64');
+                    message.body+=`\n[Message contains media. Media saved at ${savedir}\n]`;
+                    shell.exec(`touch "./${from}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+                    fs.writeFileSync(`./${from}_whatsapp_${message.timestamp}`,buffer);
+                    shell.exec(`mv "./${from}_whatsapp_${message.timestamp}"  "${savedir}${from}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+                }
+                else
+                {
+                    message.body+=`\n[Message contains media.\n]`;
+                }
             }
-
+           
             chatmessages[chatobj.name].push({'body':message.body, 'from':(message.fromMe?'You':from), 'time':timestamp});
         }
         
@@ -373,6 +395,10 @@ client.on('ready', () => {
 async function main()
 {    
     await body();
+
+    if(clearscreen)
+    shell.exec('clear',{silent:false, async:false});
+    
     start();
 }
 
