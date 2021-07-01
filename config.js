@@ -24,7 +24,7 @@ const photoviewer = 'xdg-open'
 // Whether to download media files or not
 const todownloadmedia = true
 
-// Directory where media files will be downloaded
+// Directory where media files will be downloaded (relevant only if todownloadmedia = true)
 const savedir = '$HOME/Downloads/'
 
 module.exports = {clearscreen, numberofchats, numberofmessages, messagelimit, editor, separator, photoviewer, todownloadmedia, savedir} ;
