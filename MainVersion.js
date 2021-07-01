@@ -1,4 +1,4 @@
-const {clearscreen, numberofchats, numberofmessages, messagelimit, editor, photoviewer, todownloadmedia, savedir} = require('./config.js'); 
+const {clearscreen, numberofchats, numberofmessages, messagelimit, editor, separator, photoviewer, todownloadmedia, savedir} = require('./config.js'); 
 
 const qrcode = require('qrcode-terminal');
 
@@ -8,8 +8,6 @@ const {Chat} = require('whatsapp-web.js');
 const fs = require('fs')
 
 const request = require('request')
-
-// const { exec, spawnSync } = require("child_process");
 
 const spawn = require('await-spawn');
 
@@ -102,11 +100,16 @@ async function middle(person)
 
     const messages=chatmessages[person];
 
+    let sep = '';
+
+    if(separator)
+    sep='\n---\n';
+
     let flag=0;
 
     for (message of messages)
     {
-        let addition = `###### ${message.from} (${message.time})\n${message.body}\n\n---\n\n`;
+        let addition = `###### ${message.from} (${message.time})\n${message.body}\n${sep}\n`;
 
         if(flag==0)
         {
@@ -143,12 +146,15 @@ async function middle(person)
             }
             else if(interaction[1].localeCompare(`Send Message`)==0)
             {
+                shell.exec(`echo -n "" > message.txt`, {silent:true, async:false});
                 const make_message = await spawn(`${editor}`,['message.txt'],{stdio:'inherit'});
                 let new_message = fs.readFileSync('./message.txt', {encoding:'utf8'});
     
                 let numberofperson = chats[person].id._serialized;
+
+                const regex = new RegExp(/^\s*$/);
                 
-                if(new_message.localeCompare(``)!=0)
+                if(!regex.test(new_message))
                 {
                     if(chatmessages[person].length>=messagelimit)
                     chatmessages[person].shift();
@@ -214,7 +220,7 @@ async function other()
 
     s+='<--Back';
 
-    let output = shell.exec(`echo "${s}" | fzf --layout="reverse-list" --border --info="hidden" --preview='echo "# Hit Enter to send message to the person" | mdcat '`, {silent:false, async:false}).stdout;
+    let output = shell.exec(`echo "${s}" | fzf --layout="reverse-list" --border --info="hidden" --preview='echo "# Hit Enter to send message to the person from text editor. Blank messages will not be sent." | mdcat '`, {silent:false, async:false}).stdout;
 
     if(!output)
     {
@@ -228,10 +234,13 @@ async function other()
     {
         let person = output.substring(0,output.length-1);
 
+        shell.exec(`echo -n "" > message.txt`, {silent:true, async:false});
         const make_message = await spawn(`${editor}`,['message.txt'],{stdio:'inherit'});
         let new_message = fs.readFileSync('./message.txt', {encoding:'utf8'});
+        
+        const regex = new RegExp(/^\s*$/);
 
-        if(new_message.localeCompare(``)!=0)
+        if(!regex.test(new_message))
         {
             for (chatobj of arr)
             {
