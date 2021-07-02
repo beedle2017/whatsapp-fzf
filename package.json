@@ -1,11 +1,12 @@
 {
   "name": "whatsapp-fzf",
   "version": "1.0.0",
-  "description": "Run whatsapp from the command line.",
+  "description": "Send and receive Whatsapp messages from the terminal using fzf-menu",
   "keywords": [
     "whatsapp",
     "terminal",
-    "fzf-menu"
+    "fzf",
+    "chat"
   ],
   "homepage": "https://github.com/beedle2017/whatsapp-fzf",
   "bugs": {
@@ -20,7 +21,10 @@
     "type": "git",
     "url": "https://github.com/beedle2017/whatsapp-fzf.git"
   },
-  "author": "Arka Choudhuri arkachoudhuri@live.com",
+  "author":{ 
+  "name": "Arka Choudhuri" , 
+  "email" : "arkachoudhuri@live.com"
+  },
   "license": "MIT",
   "private": false,
   "dependencies":{

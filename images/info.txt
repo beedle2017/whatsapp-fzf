@@ -1,1 +1,0 @@
-All the profile pictures of people with ongoing conversations stored in this directory. Make sure to clear the folder after each program run.

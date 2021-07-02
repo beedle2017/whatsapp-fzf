@@ -72,17 +72,17 @@ client.on('message', async(message) => {
         
         if(atstartscreen)
         {
-            const event = shell.exec(`bash ${__dirname}/killstart.sh`, {silent:true}).stdout;
+            const event = shell.exec(`bash "${__dirname}/killstart.sh"`, {silent:true}).stdout;
         }
     }
     else if(curr_chat === person)
     {
-        const event = shell.exec(`bash ${__dirname}/killprocess.sh`, {silent:true}).stdout;
+        const event = shell.exec(`bash "${__dirname}/killprocess.sh"`, {silent:true}).stdout;
     }
     else if(atstartscreen && newmessages[person]==false)
     {
         newmessages[person]=true;
-        const event = shell.exec(`bash ${__dirname}/killstart.sh`, {silent:true}).stdout;
+        const event = shell.exec(`bash "${__dirname}/killstart.sh"`, {silent:true}).stdout;
     }
     else if(newmessages[person]==false)
     {
@@ -130,7 +130,7 @@ async function middle(person)
 
     fs.writeFileSync(`${__dirname}/status.md` , `---\n## About : ${abouts[person]}\n\n---`);
 
-    shell.exec(`bash ${__dirname}/exec.sh`, {silent:false, async:true}, async function(code, stdout, stderr) {
+    shell.exec(`bash "${__dirname}/exec.sh"`, {silent:false, async:true}, async function(code, stdout, stderr) {
         
         let interaction = stdout.split('\n');
 
@@ -152,7 +152,7 @@ async function middle(person)
             }
             else if(interaction[1].localeCompare(`Send Message`)==0)
             {
-                shell.exec(`echo -n "" > ${__dirname}/message.txt`, {silent:true, async:false});
+                shell.exec(`echo -n "" > "${__dirname}/message.txt"`, {silent:true, async:false});
                 const make_message = await spawn(`${editor}`,[`${__dirname}/message.txt`],{stdio:'inherit'});
                 let new_message = fs.readFileSync(`${__dirname}/message.txt`, {encoding:'utf8'});
     
@@ -240,7 +240,7 @@ async function other()
     {
         let person = output.substring(0,output.length-1);
 
-        shell.exec(`echo -n "" > ${__dirname}/message.txt`, {silent:true, async:false});
+        shell.exec(`echo -n "" > "${__dirname}/message.txt"`, {silent:true, async:false});
         const make_message = await spawn(`${editor}`,[`${__dirname}/message.txt`],{stdio:'inherit'});
         let new_message = fs.readFileSync(`${__dirname}/message.txt`, {encoding:'utf8'});
         
@@ -297,13 +297,15 @@ async function start()
 
     fzfstring += `Other Contacts\\nQuit`;
 
-    shell.exec(`bash ${__dirname}/startbashprogram.sh "${fzfstring}"`, {silent:false, async:true}, async function(code, stdout, stderr){
+    shell.exec(`bash "${__dirname}/startbashprogram.sh" "${fzfstring}"`, {silent:false, async:true}, async function(code, stdout, stderr){
 
         if (code==0)
         {
-            if(stdout.localeCompare('Quit')==0)
+            if(stdout.localeCompare('Quit\n')==0)
             {
+                await onexit();
                 process.exit(0);
+
             }
             else if(stdout.localeCompare('Other Contacts\n')==0)
             {
@@ -319,6 +321,15 @@ async function start()
             start();
         }
     });
+}
+
+async function onexit()
+{
+    shell.exec(`rm -f "${__dirname}/curr.md"`,{silent:true,async:false});
+    shell.exec(`rm -f "${__dirname}/status.md"`,{silent:true,async:false});
+    shell.exec(`rm -f "${__dirname}/message.txt"`,{silent:true,async:false});
+    shell.exec(`rm -rf "${__dirname}/images"`,{silent:true,async:false});
+    return;
 }
 
 async function body()
@@ -409,7 +420,19 @@ client.on('ready', () => {
 
 async function main()
 {
-    shell.exec(`echo ${__dirname} > $HOME/.whatsappdir.txt`,{silent:true, async:false});
+    if (!fs.existsSync(`${__dirname}/curr.md`))
+    shell.exec(`touch "${__dirname}/curr.md"`,{silent:true,async:false});
+
+    if (!fs.existsSync(`${__dirname}/status.md`))
+    shell.exec(`touch "${__dirname}/status.md"`,{silent:true,async:false});
+
+    if (!fs.existsSync(`${__dirname}/message.txt`))
+    shell.exec(`touch "${__dirname}/message.txt"`,{silent:true,async:false});
+
+    if (!fs.existsSync(`${__dirname}/images`))
+    shell.exec(`mkdir "${__dirname}/images"`,{silent:true,async:false});
+
+    shell.exec(`echo "${__dirname}" > $HOME/.whatsappdir.txt`,{silent:true, async:false});
     
     await body();
 
