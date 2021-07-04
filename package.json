@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-fzf",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Send and receive Whatsapp messages from the terminal using fzf-menu",
   "keywords": [
     "whatsapp",
@@ -31,6 +31,7 @@
   "whatsapp-web.js" : "^1.12.6",
   "request" : "^2.88.2",
   "await-spawn" : "^4.0.2",
-  "shelljs" : "^0.8.4"
+  "shelljs" : "^0.8.4",
+  "qrcode-terminal" : "^0.12.0"
   }
 }
