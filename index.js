@@ -241,7 +241,7 @@ async function other()
 
     s+='<--Back';
 
-    let output = shell.exec(`echo -e "${s}" | fzf --layout="reverse-list" --border --info="hidden" --preview='echo "# Hit Enter to send message to the person from text editor. Blank messages will not be sent." | mdcat '`, {silent:false, async:false}).stdout;
+    let output = shell.exec(`bash "${__dirname}/otherexec.sh" "${s}"`, {silent:false, async:false}).stdout;
 
     if(!output)
     {
@@ -344,6 +344,7 @@ async function onexit()
     shell.exec(`rm -f "${__dirname}/status.md"`,{silent:true,async:false});
     shell.exec(`rm -f "${__dirname}/message.txt"`,{silent:true,async:false});
     shell.exec(`rm -rf "${__dirname}/images"`,{silent:true,async:false});
+    shell.exec(`rm -f $HOME/.whatsappdir.txt`,{silent:true,async:false});
     return;
 }
 
