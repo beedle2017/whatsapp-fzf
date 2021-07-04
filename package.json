@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-fzf",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Send and receive Whatsapp messages from the terminal using fzf-menu",
   "keywords": [
     "whatsapp",
@@ -15,7 +15,8 @@
   },
   "main": "index.js",
   "bin" : {
-    "whatsapp-fzf" : "./index.js"
+    "whatsapp-fzf" : "./index.js" ,
+    "whatsapp-fzf-init" : "./setup.js"
   },
   "repository": {
     "type": "git",
