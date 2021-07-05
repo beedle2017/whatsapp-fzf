@@ -13,11 +13,11 @@ Currently works only on Linux.
 - View *about* and *profile picture* of contacts
 
 ## Installation:
-`npm install -g whatsapp-fzf`
+`sudo npm install -g whatsapp-fzf`
 
 After installation, you need to:
 
-`sudo whatsapp-fzf-init`
+`whatsapp-fzf-init`
 
 You also need to install [fzf](https://github.com/junegunn/fzf) (for the interface) and [mdcat](https://github.com/lunaryorn/mdcat) (for previewing messages)
 
