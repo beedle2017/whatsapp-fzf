@@ -10,17 +10,28 @@ Currently works only on Linux.
 - Send and receive messages from all your contacts
 - View recent messages from contacts
 - Receive media files.
-- View *about* and *profile picture* of contacts
+- View about and profile picture of contacts
 
 ## Installation:
 `sudo npm install -g whatsapp-fzf`
 
-After installation, you need to:
+For some distros, you may also need to add the following flags:
+
+`--unsafe-perm=true --allow-root`
+
+After installation, you need to enter the command:
 
 `whatsapp-fzf-init`
 
-You also need to install [fzf](https://github.com/junegunn/fzf) (for the interface) and [mdcat](https://github.com/lunaryorn/mdcat) (for previewing messages)
+You also need to install [fzf](https://github.com/junegunn/fzf) (for the interface) and [mdcat](https://github.com/lunaryorn/mdcat) (for previewing messages).
 
 ## Usage:
 In terminal, just enter `whatsapp-fzf` to start chatting.
+
+### Configuration:
+Get your global node-modules folder path by entering the command:
+
+`npm root -g`
+
+*Cd* to that directory. The config file is located at *whatsapp-fzf/config.js* from that directory. 
 
