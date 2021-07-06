@@ -2,7 +2,7 @@
 const clearscreen = true
 
 // This is the number of chats from which all messages are fetched when the program starts
-const numberofchats = 7
+const numberofchats = 4
 
 // Note: Fetching more messages and chats will require more time during initial program startup
 
