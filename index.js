@@ -44,12 +44,19 @@ client.on('message', async(message) => {
     {
         if(todownloadmedia)
         {
-            let media = await message.downloadMedia();
-            let buffer = Buffer.from(media.data,'base64');
-            message.body+=`\n[Message contains media. Media saved at ${savedir}\n]`;
-            shell.exec(`touch "${__dirname}/${person}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
-            fs.writeFileSync(`${__dirname}/${person}_whatsapp_${message.timestamp}`,buffer);
-            shell.exec(`mv "${__dirname}/${person}_whatsapp_${message.timestamp}"  "${savedir}${person}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+            try
+            {
+                let media = await message.downloadMedia();
+                let buffer = Buffer.from(media.data,'base64');
+                message.body+=`\n[Message contains media. Media saved at ${savedir}\n]`;
+                shell.exec(`touch "${__dirname}/${person}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+                fs.writeFileSync(`${__dirname}/${person}_whatsapp_${message.timestamp}`,buffer);
+                shell.exec(`mv "${__dirname}/${person}_whatsapp_${message.timestamp}"  "${savedir}${person}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+            }
+            catch(e)
+            {
+                message.body+=`\n[Message contains media.\n]`;
+            }
         }
         else
         {
@@ -68,8 +75,16 @@ client.on('message', async(message) => {
         let about = await personchat.getAbout();
         abouts[person] = about;
         let url = await personchat.getProfilePicUrl();
-        download(url,`${__dirname}/images/${chatobj.name}`, () => {;});
-        
+
+        try
+        {
+            download(url,`${__dirname}/images/${chatobj.name}`, () => {;});
+        }
+        catch(e)
+        {
+            ;
+        }
+
         if(atstartscreen)
         {
             const event = shell.exec(`bash "${__dirname}/killstart.sh"`, {silent:true}).stdout;
@@ -226,7 +241,7 @@ async function other()
 
     s+='<--Back';
 
-    let output = shell.exec(`echo "${s}" | fzf --layout="reverse-list" --border --info="hidden" --preview='echo "# Hit Enter to send message to the person from text editor. Blank messages will not be sent." | mdcat '`, {silent:false, async:false}).stdout;
+    let output = shell.exec(`bash "${__dirname}/otherexec.sh" "${s}"`, {silent:false, async:false}).stdout;
 
     if(!output)
     {
@@ -329,6 +344,7 @@ async function onexit()
     shell.exec(`rm -f "${__dirname}/status.md"`,{silent:true,async:false});
     shell.exec(`rm -f "${__dirname}/message.txt"`,{silent:true,async:false});
     shell.exec(`rm -rf "${__dirname}/images"`,{silent:true,async:false});
+    shell.exec(`rm -f $HOME/.whatsappdir.txt`,{silent:true,async:false});
     return;
 }
 
@@ -366,12 +382,20 @@ async function body()
             {
                 if(todownloadmedia)
                 {
-                    let media = await message.downloadMedia();
-                    let buffer = Buffer.from(media.data,'base64');
-                    message.body+=`\n[Message contains media. Media saved at ${savedir}\n]`;
-                    shell.exec(`touch "${__dirname}/${from}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
-                    fs.writeFileSync(`${__dirname}/${from}_whatsapp_${message.timestamp}`,buffer);
-                    shell.exec(`mv "${__dirname}/${from}_whatsapp_${message.timestamp}"  "${savedir}${from}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+                    let media;
+                    try
+                    {
+                        media = await message.downloadMedia();
+                        let buffer = Buffer.from(media.data,'base64');
+                        message.body+=`\n[Message contains media. Media saved at ${savedir}\n]`;
+                        shell.exec(`touch "${__dirname}/${from}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+                        fs.writeFileSync(`${__dirname}/${from}_whatsapp_${message.timestamp}`,buffer);
+                        shell.exec(`mv "${__dirname}/${from}_whatsapp_${message.timestamp}"  "${savedir}${from}_whatsapp_${message.timestamp}"`,{silent:true, async:false});
+                    }
+                    catch(e)
+                    {
+                        message.body+='\n[Message contains media.\n]';
+                    }
                 }
                 else
                 {
