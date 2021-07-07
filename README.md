@@ -16,7 +16,15 @@ Currently tested only on Linux.
 - View about and profile picture of contacts
 
 ## Installation:
-At first, you need to install [fzf](https://github.com/junegunn/fzf) (for the interface) and [mdcat](https://github.com/lunaryorn/mdcat) (for previewing messages). The installation instructions can be found at their respective Github repositories.
+
+### Step 1 (Installing Dependencies):
+At first, you need to install [fzf](https://github.com/junegunn/fzf) (for the interface) and [mdcat](https://github.com/lunaryorn/mdcat) (for previewing messages). The installation instructions can be found at their respective Github repositories:
+
+[https://github.com/junegunn/fzf](https://github.com/junegunn/fzf)
+
+[https://github.com/lunaryorn/mdcat](https://github.com/lunaryorn/mdcat)
+
+### Step 2:
 
 To install whatsapp-fzf, enter the command:
 
@@ -38,5 +46,8 @@ Get your global node-modules folder path by entering the command:
 
 `npm root -g`
 
-*Cd* to that directory. The config file is located at *whatsapp-fzf/config.js* from that directory. 
+*Cd* to that directory. The config file is located at *whatsapp-fzf/config.js* from that directory.
+
+You can change the number of convesations fetched on startup, the number of messages per conversation, preferred text editor, whether to download media files and some other options.
+
 
