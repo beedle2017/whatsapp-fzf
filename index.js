@@ -9,7 +9,7 @@ const {Chat} = require('whatsapp-web.js');
 
 const fs = require('fs')
 
-const request = require('request')
+const axios = require('axios')
 
 const spawn = require('await-spawn');
 
@@ -18,13 +18,20 @@ const { dirname } = require('path');
 
 const client = new Client();
 
-const download = (url, path, callback) => {
-    request.head(url, (err, res, body) => {
-      request(url)
-        .pipe(fs.createWriteStream(path))
-        .on('close', callback)
-    })
-}
+const download = (url, path, callback) => 
+axios({
+    url,
+    responseType: 'stream',
+    }).then(
+    response =>
+        new Promise((resolve, reject) => {
+        response.data
+            .pipe(fs.createWriteStream(path))
+            .on('finish', () => resolve())
+            .on('error', e => reject(e));
+    }),
+);
+
   
 
 client.on('message', async(message) => {
@@ -78,7 +85,7 @@ client.on('message', async(message) => {
 
         try
         {
-            download(url,`${__dirname}/images/${chatobj.name}`, () => {;});
+            await download(url,`${__dirname}/images/${chatobj.name}`, () => {;});
         }
         catch(e)
         {
@@ -272,7 +279,7 @@ async function other()
                     let about = await contact.getAbout();
                     abouts[person] = about;
                     let url = await contact.getProfilePicUrl();
-                    download(url,`${__dirname}/images/${chatobj.name}`, () => {;});
+                    await download(url,`${__dirname}/images/${chatobj.name}`, () => {;});
                 }
             }
             
@@ -413,7 +420,7 @@ async function body()
 
         try
         {
-            download(url,`${__dirname}/images/${chatobj.name}`, () => {;});
+            await download(url,`${__dirname}/images/${chatobj.name}`, () => {;});
         }
         catch(e)
         {
