@@ -4,4 +4,4 @@ let os = require('os');
 
 let name=os.userInfo().username;
 
-shell.exec(`sudo chown -R "${name}":"${name}" ${__dirname}`,{silent:false});
+shell.exec(`sudo chown -R "${name}" ${__dirname}`,{silent:false});
